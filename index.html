@@ -210,6 +210,34 @@
   .blist li { display: flex; gap: 10px; font-size: 14px; color: var(--text); margin-bottom: 8px; line-height: 1.65; }
   .blist li::before { content: '—'; color: var(--text3); flex-shrink: 0; margin-top: 1px; }
 
+  /* SAVE BUTTON */
+  .save-btn { display: flex; align-items: center; gap: 8px; margin-top: 1rem; padding: 0.7rem 1.25rem; background: var(--accent-bg); border: 1px solid var(--accent-border); border-radius: var(--r); font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 600; color: var(--accent2); cursor: pointer; transition: all 0.15s; }
+  .save-btn:hover { background: rgba(79,110,247,0.2); border-color: var(--accent2); }
+  .save-btn.saved { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+
+  /* CANDIDATES DB */
+  .db-empty { font-size: 14px; color: var(--text3); padding: 2rem 0; text-align: center; }
+  .cand-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r2); padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; gap: 1rem; align-items: flex-start; }
+  .cand-card:hover { border-color: var(--border2); }
+  .cand-info { flex: 1; }
+  .cand-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .cand-meta { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+  .cand-fields { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .cand-tag { font-size: 11px; background: var(--surface3); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; color: var(--text2); }
+  .cand-score-row { display: flex; align-items: center; gap: 8px; }
+  .cand-score-num { font-size: 13px; font-weight: 700; color: var(--text); }
+  .cand-verdict { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+  .cand-verdict.green { background: var(--green-bg); color: var(--green); }
+  .cand-verdict.yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .cand-verdict.red { background: var(--red-bg); color: var(--red); }
+  .cand-verdict.none { background: var(--surface3); color: var(--text3); }
+  .cand-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+  .cand-date { font-size: 11px; color: var(--text3); }
+  .cand-del { background: none; border: none; font-size: 18px; color: var(--text3); cursor: pointer; padding: 0; line-height: 1; }
+  .cand-del:hover { color: var(--red); }
+  .sidebar-sep { height: 1px; background: var(--border); margin: 0.75rem 1.25rem; }
+  .sidebar-section { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); padding: 0.5rem 1.25rem 0.25rem; }
+
   @media (max-width: 900px) {
     .sidebar { display: none; }
     .main { margin-left: 0; padding: 1.5rem 1.25rem 4rem; }
@@ -236,6 +264,9 @@
     <a class="nav-item" href="#s5"><span class="nav-num">5</span> О нас — AllStars</a>
     <a class="nav-item" href="#s6"><span class="nav-num">6</span> Финал</a>
     <a class="nav-item" href="#s7"><span class="nav-num">★</span> Чеклист оценки</a>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-section">База</div>
+    <a class="nav-item" href="#db"><span class="nav-num">👥</span> Все кандидаты</a>
   </nav>
 
   <!-- MAIN -->
@@ -267,6 +298,7 @@
         <div class="c-field"><div class="f-label">Основная занятость / учёба</div><input class="f-input" placeholder="—"></div>
         <div class="c-field"><div class="f-label">Статус после звонка</div><input class="f-input" placeholder="берём / думаем / отказ"></div>
       </div>
+      <button class="save-btn" id="save-btn" onclick="saveCandidate()">💾 Сохранить кандидата</button>
     </div>
 
     <div class="divider"></div>
@@ -492,10 +524,150 @@
       <button class="reset-btn" onclick="resetAll()">↺ Сбросить оценку</button>
     </div>
 
+  <div class="divider"></div>
+
+    <div class="section" id="db">
+      <div class="section-header">
+        <div class="section-num" style="font-size:16px;">👥</div>
+        <div class="section-title">Все кандидаты</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Сохранённые карточки. Хранятся в браузере на этом устройстве.</p>
+      <div id="db-list"></div>
+    </div>
+
   </main>
 </div>
 
 <script>
+// ── CONFIG ──
+const API = 'https://allstars-hr-backend-production.up.railway.app';
+
+const FIELD_KEYS = ['name','tg','age','english','exp','platforms','shift','schedule','top','avgcheck','job','status'];
+
+function getFields() {
+  const inputs = document.querySelectorAll('.candidate-grid .f-input');
+  const data = {};
+  inputs.forEach((inp, i) => { data[FIELD_KEYS[i]] = inp.value.trim(); });
+  return data;
+}
+
+function clearFields() {
+  document.querySelectorAll('.candidate-grid .f-input').forEach(inp => inp.value = '');
+}
+
+// ── SAVE ──
+async function saveCandidate() {
+  const fields = getFields();
+  if (!fields.name) { alert('Введи хотя бы имя кандидата'); return; }
+  const total = Object.values(ratings).reduce((a,b) => a+b, 0);
+  const btn = document.getElementById('save-btn');
+  btn.textContent = '⏳ Сохраняем...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(API + '/candidates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields, ratings: {...ratings}, total })
+    });
+    if (!res.ok) throw new Error('Server error');
+    btn.textContent = '✓ Сохранено';
+    btn.classList.add('saved');
+    setTimeout(() => {
+      btn.textContent = '💾 Сохранить кандидата';
+      btn.classList.remove('saved');
+      btn.disabled = false;
+    }, 2000);
+    clearFields();
+    Object.keys(ratings).forEach(id => { ratings[id] = 0; renderStars(id); });
+    updateTotal();
+    renderDB();
+  } catch(e) {
+    btn.textContent = '❌ Ошибка — попробуй снова';
+    btn.disabled = false;
+    setTimeout(() => { btn.textContent = '💾 Сохранить кандидата'; }, 3000);
+  }
+}
+
+async function deleteCandidate(id, name) {
+  if (!confirm('Удалить карточку ' + (name || '?') + '?')) return;
+  await fetch(API + '/candidates/' + id, { method: 'DELETE' });
+  renderDB();
+}
+
+async function fetchAll() {
+  try {
+    const res = await fetch(API + '/candidates');
+    return await res.json();
+  } catch { return null; }
+}
+
+function verdictClass(total) {
+  if (total >= 40) return 'green';
+  if (total >= 28) return 'yellow';
+  if (total > 0)  return 'red';
+  return 'none';
+}
+function verdictText(total) {
+  if (total >= 40) return '✓ Берём';
+  if (total >= 28) return '⚠ Думаем';
+  if (total > 0)  return '✗ Отказ';
+  return 'Без оценки';
+}
+
+async function renderDB() {
+  const el = document.getElementById('db-list');
+  el.innerHTML = '<div class="db-empty">Загрузка...</div>';
+  const all = await fetchAll();
+  if (all === null) {
+    el.innerHTML = '<div class="db-empty">⚠ Не удалось подключиться к серверу.</div>';
+    return;
+  }
+  if (!all.length) {
+    el.innerHTML = '<div class="db-empty">Пока нет сохранённых кандидатов.<br>Заполни карточку и нажми «Сохранить кандидата».</div>';
+    return;
+  }
+  el.innerHTML = '';
+  all.forEach(rec => {
+    const f = rec.fields || {
+      name: rec.name, tg: rec.tg, age: rec.age, english: rec.english,
+      exp: rec.exp, platforms: rec.platforms, shift: rec.shift, schedule: rec.schedule,
+      top: rec.top_pages, avgcheck: rec.avg_check, job: rec.job, status: rec.status
+    };
+    const vc = verdictClass(rec.total);
+    const vt = verdictText(rec.total);
+    const tags = [f.platforms, f.shift, f.schedule, f.english]
+      .filter(Boolean).map(t => `<span class="cand-tag">${t}</span>`).join('');
+    const extraFields = [
+      f.exp && `Опыт: ${f.exp}`,
+      f.avgcheck && `Ср. чек: ${f.avgcheck}`,
+      f.top && `Топ: ${f.top}`,
+      f.status && `Статус: ${f.status}`,
+    ].filter(Boolean).map(t => `<span class="cand-tag">${t}</span>`).join('');
+    const date = rec.created_at ? rec.created_at.slice(0,10) : rec.date || '';
+
+    const card = document.createElement('div');
+    card.className = 'cand-card';
+    card.innerHTML = `
+      <div class="cand-info">
+        <div class="cand-name">${f.name || '—'}${f.tg ? ' · <span style="font-weight:400;color:var(--accent2)">' + f.tg + '</span>' : ''}</div>
+        <div class="cand-meta">${f.age ? f.age + ' лет' : ''}${f.job ? ' · ' + f.job : ''}</div>
+        ${tags ? `<div class="cand-fields">${tags}</div>` : ''}
+        ${extraFields ? `<div class="cand-fields">${extraFields}</div>` : ''}
+        <div class="cand-score-row">
+          <span class="cand-score-num">${rec.total} / 50</span>
+          <span class="cand-verdict ${vc}">${vt}</span>
+        </div>
+      </div>
+      <div class="cand-actions">
+        <span class="cand-date">${date}</span>
+        <button class="cand-del" title="Удалить">×</button>
+      </div>`;
+    card.querySelector('.cand-del').addEventListener('click', () => deleteCandidate(rec.id, f.name));
+    el.appendChild(card);
+  });
+}
+
+// ── CHECKLIST ──
 const criteria = [
   { section: "Опыт и результаты", items: [
     "Опыт в adult / смежных продажах или поддержке",
@@ -614,6 +786,7 @@ const observer = new IntersectionObserver(entries => {
 sections.forEach(s => observer.observe(s));
 
 buildChecklist();
+renderDB();
 </script>
 </body>
 </html>
