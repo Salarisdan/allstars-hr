@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AllStars — HR Скрипт</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --surface3: #232840;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #4f6ef7;
+    --accent2: #6c87ff;
+    --accent-bg: rgba(79,110,247,0.12);
+    --accent-border: rgba(79,110,247,0.3);
+    --text: #e8eaf0;
+    --text2: #8b90a8;
+    --text3: #555b72;
+    --green: #34d39a;
+    --green-bg: rgba(52,211,154,0.1);
+    --green-border: rgba(52,211,154,0.25);
+    --yellow: #fbbf24;
+    --yellow-bg: rgba(251,191,36,0.1);
+    --yellow-border: rgba(251,191,36,0.25);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --red-border: rgba(248,113,113,0.25);
+    --orange: #fb923c;
+    --note-bg: rgba(251,146,60,0.08);
+    --note-border: rgba(251,146,60,0.25);
+    --case-bg: rgba(248,113,113,0.06);
+    --case-border: rgba(248,113,113,0.2);
+    --r: 10px;
+    --r2: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* LAYOUT */
+  .layout { display: flex; min-height: 100vh; }
+
+  /* SIDEBAR NAV */
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 1.5rem 0 2rem;
+  }
+  .sidebar-logo {
+    padding: 0 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+  .sidebar-logo .brand { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .sidebar-logo .sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: 7px 1.25rem;
+    font-size: 13px; color: var(--text2);
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--accent2); border-left-color: var(--accent); background: var(--accent-bg); }
+  .nav-num { font-size: 11px; color: var(--text3); min-width: 16px; }
+
+  /* MAIN */
+  .main { margin-left: 240px; max-width: 820px; padding: 3rem 2.5rem 5rem; }
+
+  /* PAGE HEADER */
+  .page-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+  .page-header .tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent2); background: var(--accent-bg); border: 1px solid var(--accent-border); border-radius: 20px; padding: 3px 10px; margin-bottom: 1rem; }
+  .page-header h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
+  .page-header p { font-size: 14px; color: var(--text2); margin-top: 6px; }
+
+  /* SECTION */
+  .section { margin-bottom: 3rem; scroll-margin-top: 2rem; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+  .section-num { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-bg); border: 1px solid var(--accent-border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
+  .section-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .divider { height: 1px; background: var(--border); margin: 2.5rem 0; }
+
+  /* SPEECH BUBBLE */
+  .speech {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-size: 14.5px;
+    color: var(--text);
+    line-height: 1.75;
+  }
+  .speech .speaker { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent2); margin-bottom: 6px; }
+
+  /* NOTE */
+  .note {
+    background: var(--note-bg);
+    border: 1px solid var(--note-border);
+    border-radius: var(--r);
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: var(--orange);
+    margin: 0.75rem 0;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .note-icon { flex-shrink: 0; margin-top: 1px; }
+
+  /* LISTEN */
+  .listen {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    border-radius: var(--r);
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: var(--green);
+    margin: 0.5rem 0 1.25rem;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+
+  /* QUESTION */
+  .question { margin: 1.25rem 0; }
+  .q-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 0.4rem; }
+  .q-num { width: 22px; height: 22px; border-radius: 6px; background: var(--surface3); border: 1px solid var(--border2); font-size: 11px; font-weight: 700; color: var(--text2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .q-text { font-size: 14.5px; font-weight: 600; color: var(--text); }
+  .q-hint { font-size: 13px; color: var(--text2); margin-left: 32px; }
+
+  /* CASE */
+  .case {
+    background: var(--case-bg);
+    border: 1px solid var(--case-border);
+    border-left: 3px solid var(--red);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+  }
+  .case-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red); margin-bottom: 8px; }
+  .case-text { font-size: 14.5px; color: var(--text); line-height: 1.7; }
+  .case-hint { font-size: 13px; color: var(--text2); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--case-border); }
+
+  /* INFO ROW */
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+  .info-item { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 0.75rem 1rem; }
+  .info-item .i-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; }
+  .info-item .i-val { font-size: 14px; font-weight: 600; color: var(--text); }
+
+  /* STEPS */
+  .steps { margin: 1rem 0; }
+  .step { display: flex; gap: 12px; margin-bottom: 0.75rem; }
+  .step-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent-border); background: var(--accent-bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+  .step-content { font-size: 14px; color: var(--text); padding-top: 1px; }
+  .step-content strong { color: var(--text); font-weight: 600; }
+
+  /* CARDS FOR CANDIDATE */
+  .candidate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .c-field { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r); padding: 0.6rem 0.875rem; }
+  .c-field .f-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .c-field .f-input { width: 100%; background: none; border: none; outline: none; font-family: 'Manrope', sans-serif; font-size: 13.5px; color: var(--text); caret-color: var(--accent2); }
+  .c-field .f-input::placeholder { color: var(--text3); }
+  .c-field:focus-within { border-color: var(--accent-border); background: var(--surface3); }
+
+  /* CHECKLIST */
+  .checklist { margin-top: 1rem; }
+  .cl-section { margin-bottom: 1.5rem; }
+  .cl-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  .cl-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+  .cl-row:last-child { border-bottom: none; }
+  .cl-label { font-size: 14px; color: var(--text); flex: 1; }
+  .stars { display: flex; gap: 3px; flex-shrink: 0; }
+  .star { font-size: 20px; cursor: pointer; color: var(--surface3); transition: color 0.1s, transform 0.12s; user-select: none; line-height: 1; }
+  .star:hover { transform: scale(1.2); }
+  .star.on { color: var(--yellow); }
+
+  .total-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--r2); }
+  .total-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .total-score { font-size: 26px; font-weight: 700; color: var(--text); }
+  .total-score span { font-size: 16px; font-weight: 400; color: var(--text2); }
+
+  .verdict { display: none; margin-top: 0.875rem; padding: 0.875rem 1.25rem; border-radius: var(--r2); font-size: 14px; font-weight: 600; }
+  .verdict.show { display: block; }
+  .verdict.green { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+  .verdict.yellow { background: var(--yellow-bg); border: 1px solid var(--yellow-border); color: var(--yellow); }
+  .verdict.red { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+
+  .reset-btn { margin-top: 0.875rem; background: none; border: none; font-family: 'Manrope', sans-serif; font-size: 13px; color: var(--text3); cursor: pointer; padding: 0; }
+  .reset-btn:hover { color: var(--text2); }
+
+  /* BULLETS */
+  .blist { padding-left: 0; list-style: none; margin: 0.75rem 0; }
+  .blist li { display: flex; gap: 10px; font-size: 14px; color: var(--text); margin-bottom: 8px; line-height: 1.65; }
+  .blist li::before { content: '—'; color: var(--text3); flex-shrink: 0; margin-top: 1px; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 1.5rem 1.25rem 4rem; }
+    .info-grid { grid-template-columns: 1fr; }
+    .candidate-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">AllStars</div>
+      <div class="sub">HR-скрипт интервью</div>
+    </div>
+    <a class="nav-item" href="#card"><span class="nav-num">—</span> Карточка кандидата</a>
+    <a class="nav-item" href="#s1"><span class="nav-num">1</span> Открытие</a>
+    <a class="nav-item" href="#s2"><span class="nav-num">2</span> Опыт и результаты</a>
+    <a class="nav-item" href="#s3"><span class="nav-num">3</span> Личность и мотивация</a>
+    <a class="nav-item" href="#s4"><span class="nav-num">4</span> Практические кейсы</a>
+    <a class="nav-item" href="#s5"><span class="nav-num">5</span> О нас — AllStars</a>
+    <a class="nav-item" href="#s6"><span class="nav-num">6</span> Финал</a>
+    <a class="nav-item" href="#s7"><span class="nav-num">★</span> Чеклист оценки</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="tag">Fansly / OnlyFans</div>
+      <h1>Скрипт HR-интервью</h1>
+      <p>Оператор чата · AllStars Agency</p>
+    </div>
+
+    <!-- КАРТОЧКА -->
+    <div class="section" id="card">
+      <div class="section-header">
+        <div class="section-num">—</div>
+        <div class="section-title">Карточка кандидата</div>
+      </div>
+      <div class="candidate-grid">
+        <div class="c-field"><div class="f-label">Имя</div><input class="f-input" placeholder="—"></div>
+        <div class="c-field"><div class="f-label">Telegram</div><input class="f-input" placeholder="@username"></div>
+        <div class="c-field"><div class="f-label">Возраст</div><input class="f-input" placeholder="—"></div>
+        <div class="c-field"><div class="f-label">Английский</div><input class="f-input" placeholder="A1 / A2 / B1…"></div>
+        <div class="c-field"><div class="f-label">Опыт в adult (лет)</div><input class="f-input" placeholder="—"></div>
+        <div class="c-field"><div class="f-label">Платформы</div><input class="f-input" placeholder="OF / Fansly / другое"></div>
+        <div class="c-field"><div class="f-label">Желаемая смена</div><input class="f-input" placeholder="утро / день / ночь"></div>
+        <div class="c-field"><div class="f-label">График</div><input class="f-input" placeholder="5/2 или 6/1"></div>
+        <div class="c-field"><div class="f-label">Топ страниц (прошлое)</div><input class="f-input" placeholder="—"></div>
+        <div class="c-field"><div class="f-label">Средний чек</div><input class="f-input" placeholder="—"></div>
+        <div class="c-field"><div class="f-label">Основная занятость / учёба</div><input class="f-input" placeholder="—"></div>
+        <div class="c-field"><div class="f-label">Статус после звонка</div><input class="f-input" placeholder="берём / думаем / отказ"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 1. ОТКРЫТИЕ -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">Открытие</div>
+      </div>
+      <div class="speech">
+        <div class="speaker">🗣 Влад</div>
+        Привет, [Имя]! Спасибо, что нашёл время. Меня зовут Влад, я HR в AllStars. Сегодня я хочу познакомиться с тобой поближе — задам несколько вопросов об опыте, разберём пару рабочих ситуаций, и после этого уже подробно расскажу о нас, условиях и отвечу на все вопросы. Обычно занимает минут 20–30. Тебе удобно сейчас?
+      </div>
+      <div class="note"><span class="note-icon">📌</span> Дай кандидату ответить и освоиться. Если чувствуется напряжение — скажи: «Это неформальный разговор, правильных ответов нет».</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 2. ОПЫТ -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">Опыт и результаты</div>
+      </div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">1</div><div class="q-text">Расскажи кратко — где работал, что делал, с каким типажом моделей и на каких платформах?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Общий бэкграунд: OF / Fansly / другое, роль, сколько времени. Слушаем не только факты, но и как человек о себе говорит.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">2</div><div class="q-text">Какие были цифры — средний чек, конверсия в PPV, сколько фанов одновременно вёл?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Понимает ли кандидат свои метрики или работал «на автомате»? Конкретные цифры — хороший знак.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">3</div><div class="q-text">Какие фишки или связки реально давали результат? Что бы ты внедрил у нас с первого месяца?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Наблюдательность, инициативность. Хорошо, если называет конкретные механики, а не размытые слова.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">4</div><div class="q-text">Какая была твоя самая крупная ошибка в чаттинге — и что ты из неё вынес?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Рефлексия и зрелость. Тот, кто не ошибался — не работал. Ответ «всё было хорошо» — красный флаг.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">5</div><div class="q-text">Как ты обычно понимаешь, что фан готов к апсейлу прямо сейчас, а не через 5 сообщений?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Чтение сигналов, тайминг. Оцениваем интуицию продажника.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">6</div><div class="q-text">Был ли фан, с которым ты реально старался, но не вышло? Что пошло не так?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Честность и самоанализ. Умеет ли человек разбирать провалы без самобичевания.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 3. ЛИЧНОСТЬ -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">Личность и мотивация</div>
+      </div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">1</div><div class="q-text">Чем занимаешься помимо работы — учёба, хобби, другая занятость?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Реальная загруженность. Если учится очно + работает — важно понять, реально ли 6 часов смен.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">2</div><div class="q-text">Какой уровень дохода рассматриваешь на старте и через 3 месяца? Ты больше хочешь стабильного комфорта — или готов вкладываться и расти?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> «Хочу 200k через месяц» без опыта — красный флаг. Ищем тех, кто понимает связь результата и дохода.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">3</div><div class="q-text">Какие смены рассматриваешь — утро, день, вечер?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Совместимость с расписанием. Фиксируй в карточку.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">4</div><div class="q-text">Что для тебя идеальная работа в агентстве через год? Тимлидство, свой отдел — или просто высокий доход без ответственности за других?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Оба варианта нормальны. Важно, чтобы человек понимал, чего хочет.</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">5</div><div class="q-text">Как ты реагируешь на критику? Был ли случай, когда обратная связь тебя задела, но ты с ней согласился?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Защитная реакция — плохой знак. Ищем: «да, было, вот что я сделал».</div>
+
+      <div class="question">
+        <div class="q-header"><div class="q-num">6</div><div class="q-text">Что тебя может выбить из рабочего ритма — и как ты с этим справляешься?</div></div>
+      </div>
+      <div class="listen"><span>👂</span> Стрессоустойчивость и осознанность. Есть ли у человека инструменты для саморегуляции.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 4. КЕЙСЫ -->
+    <div class="section" id="s4">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">Практические кейсы</div>
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Влад</div>
+        Хорошо, теперь самое интересное. Я дам тебе несколько реальных ситуаций из работы. Не ищи «правильный» ответ — мне важно увидеть ход твоих мыслей и то, как ты пишешь. Представь, что отправляешь сообщение фану прямо сейчас. Готов?
+      </div>
+      <div class="note"><span class="note-icon">📌</span> Дай время на каждый кейс. Не торопи. Если кандидат думает вслух — это хорошо.</div>
+
+      <div class="case">
+        <div class="case-label">Кейс 1</div>
+        <div class="case-text">Новый лид с TikTok. Он лайкнул последнее фото, но молчит. Модель — брюнетка, вайб «girlfriend experience». Напиши первое сообщение, которое не выглядит как спам-рассылка.</div>
+        <div class="case-hint">✎ Оцениваем: тёплый вход, уход от шаблонов, удержание вайба модели.</div>
+      </div>
+
+      <div class="case">
+        <div class="case-label">Кейс 2</div>
+        <div class="case-text">Фан флиртует 10 минут. Ты скидываешь PPV за $15. Он отвечает: «Дорого, у других дешевле» или «Скинь бесплатно, я хороший мальчик». Твои действия и текст ответа?</div>
+        <div class="case-hint">✎ Оцениваем: работу с возражениями, удержание ценности, отсутствие паники.</div>
+      </div>
+
+      <div class="case">
+        <div class="case-label">Кейс 3</div>
+        <div class="case-text">Топ-спендер платил $500/мес, перестал открывать сообщения и продлевать саб. Прошло 2 недели. Напиши сообщение, чтобы его вернуть — без надрыва и нужды.</div>
+        <div class="case-hint">✎ Оцениваем: win-back без давления, персонализацию, сохранение статуса модели.</div>
+      </div>
+
+      <div class="case">
+        <div class="case-label">Кейс 4</div>
+        <div class="case-text">Фан несколько раз покупал PPV, но сегодня внезапно груб: «Надоело, одно и то же». Как реагируешь?</div>
+        <div class="case-hint">✎ Оцениваем: управление эмоциями, быстрый ретейн, смену подачи.</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 5. О НАС -->
+    <div class="section" id="s5">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div class="section-title">О нас — AllStars</div>
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Влад</div>
+        Отлично, теперь моя очередь. Расскажу подробно — что такое AllStars и как всё устроено внутри.
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Кто мы</div>
+        Наше агентство называется AllStars. Мы — агентство полного цикла. Это значит, что мы сами делаем и трафик, и продажи. Не просто берём модель и говорим «ну, продавай» — нет. Мы сами приводим фанов, в среднем около 20 000 в месяц. Работаем на двух платформах: Fansly — там у нас 12 моделей, и OnlyFans — 7 моделей. Страницы разного уровня: есть учебные, на которых новые операторы набивают руку, и есть топовые. Мы работаем не хаотично — всё по цифрам: средний чек, конверсия, открытие платных сообщений, рост страниц. При этом команда живая — у нас есть система, но мы постоянно что-то придумываем и улучшаем.
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Деньги и карьерный рост</div>
+        Теперь про деньги и рост — это обычно самое интересное. Ты начинаешь на учебной странице. Оборот там 2–2,5 тысячи долларов в месяц, и на старте ты получаешь 25% — специально повышенная ставка, пока набираешься опыта. Расти можно быстро: если показываешь результат, уже через несколько смен тебя переводят выше. Максимум у нас — страница с топом 0.5, оборот там около 60 000 долларов в месяц. Это реальная цифра, не маркетинг.
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 AI-технологии</div>
+        Теперь расскажу про то, чем мы реально отличаемся от большинства агентств. У нас серьёзно внедрён AI — и не для того, чтобы заменить операторов, а чтобы ты зарабатывал больше и не выгорал. Например: прямо из CRM ты можешь сгенерировать голосовое сообщение, где модель произносит имя конкретного фана. Представь, что это значит для удержания. Дальше — генерация изображений и визуального контента под запрос фана. Есть липсинг-видео: модель говорит имя фана и короткую фразу — это отдельная история для китов. Ещё есть AI-переводчик и расширитель: берёшь короткую фразу вроде «Hey, wanna something hot» — и он превращает её в живой, вовлекающий текст. Кастомы через AI делаем за 1–2 дня. У тебя такое было на прошлом месте?
+      </div>
+      <div class="note"><span class="note-icon">📌</span> Дай кандидату ответить. Если нет — это дополнительный аргумент в пользу перехода к вам.</div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Инструменты</div>
+        Теперь про то, как технически устроена работа. Вся переписка с фанами — через браузер OnlyMonster. Там же отправляешь PPV, кастомы, весь контент. Помимо этого, у нас есть собственная CRM — внутренняя экосистема AllStars. Там ты начинаешь и заканчиваешь смену, пишешь отчёты, видишь балансы и продажи, подтверждаешь продажи и запрашиваешь кастомы у модели. Важный момент: CRM сама подтягивает продажи из OnlyMonster — тебе ничего не нужно считать вручную. Связь с моделью — через Telegram-чат: контент, голосовые, кастомы.
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Условия</div>
+        По деньгам — базовая ставка 20% от оборота. На учебной странице — 25%, пока оборот не перешагнул 3 тысячи долларов. Плюс каждую неделю есть план KPI: выполнил — получаешь дополнительные 2% сверху. Смены по 6 часов, график 5/2 или 6/1 — согласовываешь с тимлидом, обычно без проблем. Выплаты каждый понедельник, на крипто-кошелёк.
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Обучение и адаптация</div>
+        И про старт. У нас нет классических лекций и долгих вводных недель. Формат простой: сразу в практику, но не в одиночку. Сначала получаешь подробный гайд в Notion — там воронка продаж, скрипты, сексинг, кастомы, интерфейс платформ. Потом короткий тест — 20 вопросов, половина открытые, проверяем мышление. Дальше тест-смена 2–2,5 часа со старшим оператором — он показывает CRM, страницу модели, логику продаж, и все продажи в эту смену засчитываются тебе. Со второй смены работаешь сам, но с поддержкой. На третьей — разбор с тимлидом. На пятой — финальное решение. Мы не бросаем людей: всегда можно задать вопрос коллегам или тимлиду.
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 6. ФИНАЛ -->
+    <div class="section" id="s6">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div class="section-title">Финал</div>
+      </div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Влад</div>
+        Ну вот, в целом это всё о нас. Есть ли у тебя вопросы — по условиям, по работе, по команде?
+      </div>
+      <div class="note"><span class="note-icon">📌</span> Дай кандидату время. Хорошие вопросы — признак вовлечённости.</div>
+
+      <div class="speech">
+        <div class="speaker">🗣 Влад</div>
+        Если мы понимаем, что подходим друг другу — я пришлю тебе небольшое тестовое: проверка стиля и грамотности. Срок — 24 часа. После этого тест-смена и, если всё ок, сразу в график. Когда ты сможешь выполнить тестовое, если пойдём дальше?
+      </div>
+      <div class="note"><span class="note-icon">📌</span> После подтверждения — запросить почту или Telegram для доступа к гайду в Notion.</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 7. ЧЕКЛИСТ -->
+    <div class="section" id="s7">
+      <div class="section-header">
+        <div class="section-num">★</div>
+        <div class="section-title">Чеклист оценки</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1.25rem;">Заполни сразу после звонка, пока свежо. Нажми на звёзды — они загораются жёлтым.</p>
+
+      <div class="checklist" id="checklist"></div>
+
+      <div class="total-bar">
+        <span class="total-label">Итого</span>
+        <span class="total-score" id="total-score">0 <span>/ 50</span></span>
+      </div>
+      <div class="verdict" id="verdict"></div>
+      <button class="reset-btn" onclick="resetAll()">↺ Сбросить оценку</button>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const criteria = [
+  { section: "Опыт и результаты", items: [
+    "Опыт в adult / смежных продажах или поддержке",
+    "Понимает свои цифры (чек, конверсия, удержание)",
+    "Читает сигналы готовности фана к апсейлу",
+  ]},
+  { section: "Коммуникация и кейсы", items: [
+    "В кейсах пишет тепло, без шаблонов",
+    "Работает с возражениями без паники",
+  ]},
+  { section: "Личность и мотивация", items: [
+    "Открыт к фидбэку, не защищается",
+    "Реалистичные финансовые ожидания",
+    "График совместим с нашими сменами",
+    "Долгосрочная мотивация (не «просто попробую»)",
+    "Общее впечатление — зрелость, адекватность",
+  ]},
+];
+
+const ratings = {};
+let idCounter = 0;
+
+function buildChecklist() {
+  const el = document.getElementById('checklist');
+  criteria.forEach(section => {
+    const sec = document.createElement('div');
+    sec.className = 'cl-section';
+    const title = document.createElement('div');
+    title.className = 'cl-section-title';
+    title.textContent = section.section;
+    sec.appendChild(title);
+
+    section.items.forEach(item => {
+      const id = 'c' + (idCounter++);
+      ratings[id] = 0;
+
+      const row = document.createElement('div');
+      row.className = 'cl-row';
+
+      const lbl = document.createElement('span');
+      lbl.className = 'cl-label';
+      lbl.textContent = item;
+
+      const stars = document.createElement('div');
+      stars.className = 'stars';
+
+      for (let i = 1; i <= 5; i++) {
+        const s = document.createElement('span');
+        s.className = 'star';
+        s.textContent = '★';
+        s.dataset.id = id;
+        s.dataset.val = i;
+        s.addEventListener('click', () => {
+          ratings[id] = ratings[id] === i ? 0 : i;
+          renderStars(id);
+          updateTotal();
+        });
+        s.addEventListener('mouseover', () => {
+          document.querySelectorAll(`.star[data-id="${id}"]`).forEach(st => {
+            st.classList.toggle('on', +st.dataset.val <= i);
+          });
+        });
+        s.addEventListener('mouseout', () => renderStars(id));
+        stars.appendChild(s);
+      }
+
+      row.appendChild(lbl);
+      row.appendChild(stars);
+      sec.appendChild(row);
+    });
+
+    el.appendChild(sec);
+  });
+}
+
+function renderStars(id) {
+  document.querySelectorAll(`.star[data-id="${id}"]`).forEach(s => {
+    s.classList.toggle('on', +s.dataset.val <= ratings[id]);
+  });
+}
+
+function updateTotal() {
+  const total = Object.values(ratings).reduce((a, b) => a + b, 0);
+  document.getElementById('total-score').innerHTML = total + ' <span>/ 50</span>';
+  const v = document.getElementById('verdict');
+  if (total === 0) { v.className = 'verdict'; return; }
+  if (total >= 40) {
+    v.className = 'verdict show green';
+    v.textContent = '✓ Берём — отправляем тестовое в течение часа';
+  } else if (total >= 28) {
+    v.className = 'verdict show yellow';
+    v.textContent = '⚠ Думаем — дополнительный созвон или тестовое с повышенной планкой';
+  } else {
+    v.className = 'verdict show red';
+    v.textContent = '✗ Отказ — вежливо отказываем, фиксируем причину';
+  }
+}
+
+function resetAll() {
+  Object.keys(ratings).forEach(id => { ratings[id] = 0; renderStars(id); });
+  updateTotal();
+}
+
+// Sidebar active state
+const navItems = document.querySelectorAll('.nav-item');
+const sections = document.querySelectorAll('.section');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navItems.forEach(n => n.classList.remove('active'));
+      const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+buildChecklist();
+</script>
+</body>
+</html>
